@@ -1,0 +1,158 @@
+---
+title: "A Comprehensive Study for Stillbirth"
+subtitle: "Analysis with trends and frequency"
+author: 
+  - Xiaoguang He
+  - None
+thanks: "Code and data are available at: LINK."
+date: today
+date-format: long
+abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
+format: pdf
+number-sections: true
+bibliography: references.bib
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+install.packages('tidyverse')
+install.packages('opendatatoronto')
+
+library(tidyverse)
+library(opendatatoronto)
+
+
+
+#### Download data ####
+#| echo: false
+#| warning: false
+# Install necessary packages (if not installed)
+
+# Retrieve a list of all available data packages from the OpenDataToronto portal
+packages <- list_packages(120)
+# Display the list of available packages
+packages
+
+#| echo: false
+#| warning: false
+
+stillbirth_packages <- search_packages("Stillbirth Registration Statistics")
+stillbirth_packages
+
+stillbirth_resources <- stillbirth_packages %>%
+  list_package_resources()
+
+stillbirth_resources
+
+stillbirth_statistics <- stillbirth_resources[2,] %>%
+  get_resource()
+
+stillbirth_statistics
+
+write_csv(stillbirth_statistics, "first_version_data.csv")
+```
+
+
+# Introduction
+
+You can and should cross-reference sections and sub-sections. We use @citeR and @rohan.
+
+The remainder of this paper is structured as follows. @sec-data....
+
+Stillbirth, defines as the loss of life sign of a fetus prior to the complete extraction from its mother. Despite advances in antenatal care, the occurrence of stillbirths continues to be challenging for countries with different level of development. On a deeper level, stillbirth is closely related to abortion. In addition to its impact on the medical field, stillbirth is also tighted to the government's policy on birth restriction. Understanding the trends and underlying factors associated with stillbirth is vital for developing effective interventions aimed at reducing its incidence as mentioend in @smith2007stillbirth. On the other side, it helps with providing a better frame for the related political activities, according to @bukowski2014fetal.
+
+This paper seeks to explore the different aspects of stillbirth with its statistics from @opendatatoronto. We count the number of stillbirth and put it in a graph with corresponding time to analyze its frequency and trends. Which eventually achieve the purpose of learning stillbirth's overall frame and it changes along with time.
+
+The remainder of this paper is structured as follows: Section 2 discusses the data, Section 3 discusses the model, Section 4 presents the results, and finally Section 5 discusses our findings and some weaknesses.
+
+# Data {#sec-data}
+
+Some of our data is of penguins (@fig-bills), from @palmerpenguins.
+
+```{r}
+
+
+#| label: stillbirth-line
+#| fig-cap: Stillbirth count base on time
+#| echo: false
+
+# Load necessary libraries
+library(ggplot2)
+
+# Load the dataset
+data <- read.csv("first_version_data.csv")
+
+# Convert TIME_PERIOD to Date type
+data$TIME_PERIOD <- as.Date(paste0(data$TIME_PERIOD, "-01"))
+
+# Time Series Plot
+ggplot(data, aes(x = TIME_PERIOD, y = STILLBIRTH_LICENSES)) +
+  geom_line() +
+  labs(title = "Time Series of Stillbirth Licenses",
+       x = "Time Period",
+       y = "Number of Stillbirth Licenses") +
+  theme_minimal()
+
+```
+
+The time series graph of stillbirth licenses shows fluctuating counts between 2010 and 2025, with most values ranging between 0 and 200. the variance of stillbirth counts is notable between months which will be proved in later on graph, but no clear difference on a year base. A sharp spike occurs around 2023-2024, where the number weirdly exceeds 400, suggesting an unusual increase in stillbirths or changes in reporting practices. The counts drop down with less exaggerating data but slightly varies from years before the peak. Without a doubt, the peak around 2023-2024 stands out as a significant outlier, the rest is stable from a larger perspective. It exhibits a steady political arrangements regarding birth restriction
+
+And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
+
+```{r}
+#| label: stillbirth-histogram
+#| fig-cap: Frequency of stillbirth-counts
+#| echo: false
+#| warning: false
+#| message: false
+
+# Histogram of stillbirth licenses
+ggplot(data, aes(x = STILLBIRTH_LICENSES)) +
+  geom_histogram(binwidth = 5, fill = "blue", color = "black") +
+  labs(title = "Distribution of Stillbirth Licenses",
+       x = "Number of Stillbirth Licenses",
+       y = "Frequency") +
+  theme_minimal()
+
+
+```
+
+The histogram titled "Distribution of Stillbirth Licenses" displays the frequency of occurrences for different counts of stillbirth licenses. The x-axis represents the number of stillbirth licenses, while the y-axis indicates the frequency, or how often those counts occur. The majority of the data points are concentrated at the lower end, with most counts falling between 0 and 100 stillbirth licenses. The distribution shows a right-skewed pattern, where the frequency decreases as the number of licenses increases. There are a few instances of stillbirth license counts exceeding 100, and one significant outlier appears around 400 stillbirth licenses, indicating a rare but extreme event. Overall, the distribution suggests that higher counts of stillbirth licenses are uncommon, with most occurrences clustering in the lower ranges.
+
+```{r}
+#| label: stillbirth-trends
+#| fig-cap: Relationship between stillbirth trends and time
+#| echo: false
+#| warning: false
+#| message: false
+
+# Extract the month and year from TIME_PERIOD
+data$Year <- format(data$TIME_PERIOD, "%Y")
+data$Month <- format(data$TIME_PERIOD, "%B")
+
+# Monthly trend comparison over years
+ggplot(data, aes(x = Month, y = STILLBIRTH_LICENSES, color = Year, group = Year)) +
+  geom_line() +
+  labs(title = "Monthly Trend of Stillbirth Licenses Over the Years",
+       x = "Month",
+       y = "Number of Stillbirth Licenses") +
+  theme_minimal() +
+  scale_x_discrete(limits = month.name) # Ensure months are ordered correctly
+
+```
+
+This graph depicts the monthly trend of stillbirth licenses over the years from 2011 to 2024. The x-axis represents the months of the year, ranging from January to December, while the y-axis shows the number of stillbirth licenses issued. Each line corresponds to a specific year, as indicated by the color-coded legend on the right-hand side. Notably, the year 2024 (represented by the pink line) shows a pronounced spike in stillbirth licenses in March, exceeding 400, followed by a sharp decline in subsequent months. Other years show relatively lower and more consistent numbers, with minor fluctuations across different months, particularly in April, June, and September, where some years have visible increases in stillbirth licenses. Overall, 2024 stands out as an anomaly in terms of the significant increase in March compared to previous years.
+
+
+
+
+
+
+\newpage
+
+
+# References
+
+
